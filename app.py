@@ -8,7 +8,8 @@ import plotly.express as px
 #stream docs reference : https://docs.streamlit.io/library/api-reference/utilities/st.set_page_config
 st.set_page_config(page_title = "Supermarket Sales Dashboard",
                     page_icon= ':chart_with_upwards_trend:',
-                    layout = 'wide')
+                    layout = 'wide',
+                    initial_sidebar_state="collapsed")
 
 #pandas ref : https://pandas.pydata.org/docs/reference/api/pandas.read_excel.html
 @st.cache
@@ -93,13 +94,15 @@ fig_product_sales = px.bar(
     y=Sales_by_product_line.index,
     orientation='h',
     title="<b>Sales By Product Line</b>",
-    color_discrete_sequence=["#0083B8"] * len(Sales_by_product_line),
-    template= 'plotly_white'
+    color=Sales_by_product_line.index
+    #color_discrete_sequence=["#0083B8"] * len(Sales_by_product_line),
+    #template= 'plotly_white'
     )
 
 fig_product_sales.update_layout(
     plot_bgcolor = "rgba(0,0,0,0)",
-    xaxis =(dict(showgrid = False))
+    xaxis =(dict(showgrid = False)),
+    title = {'x' : 0.5}
 )
 
 
@@ -110,35 +113,94 @@ fig_product_sales.update_layout(
 
 sales_by_hour = df1.groupby(by = ["hour"]).sum()[["Total"]]
 
-fig_sales_by_hour = px.bar(
+fig_sales_by_hour = px.area(
     sales_by_hour,
     x = sales_by_hour.index,
     y= "Total",
     orientation='v',
     title="<b>Sales By Hour </b>",
-    color_discrete_sequence=["#0083B8"] * len(Sales_by_product_line),
-    template= 'plotly_white'
+    #color_discrete_sequence=["#0083B8"] * len(Sales_by_product_line),
+    #template= 'plotly_white'
+    color=sales_by_hour.index
 )
 
 fig_sales_by_hour.update_layout(
     plot_bgcolor = "rgba(0,0,0,0)",
-    xaxis =(dict(showgrid = False))
+    xaxis =(dict(showgrid = False)),
+    yaxis =(dict(showgrid = False)),
+    title= {'x':0.5}
 )
 
-st.plotly_chart(fig_product_sales,use_container_width=True)
-st.plotly_chart(fig_sales_by_hour,use_container_width=True)
+#Average rating accross product Lines
+
+average_rating_product_line = df1.groupby(by = 'Product line').mean()['Rating']
+
+fig_average_product_rating = px.bar(
+    average_rating_product_line ,
+    x = average_rating_product_line.index,
+    y = 'Rating',
+    orientation= 'v',
+    title='<b>Average Rating Across Product Lines</b>',
+    #color_discrete_sequence=["#0083B8"] * len(Sales_by_product_line),
+    #template= 'plotly_white'
+    color=average_rating_product_line.index
+)
+fig_average_product_rating.update_layout(
+    plot_bgcolor = "rgba(0,0,0,0)",
+    xaxis =(dict(showgrid = False)),
+    title= {'x':0.5}
+)
+
+#Scatter Plot (Rating vs Unit Price)
+
+fig_rating_vs_unitprice = px.scatter(
+    df1,
+    x= 'Unit price',
+    y = 'Rating',
+    title='<b>Unit Price vs Rating</b>',
+    #color_discrete_sequence=["#0083B8"] * len(Sales_by_product_line),
+    #template= 'plotly_white'
+)
+
+fig_rating_vs_unitprice.update_layout(
+    plot_bgcolor = "rgba(0,0,0,0)",
+    title= {'x':0.5}
+)
+
+
+
+#Pie Chart showing distribution of payment types
+
+payment_type = df1.groupby(by = ['Payment']).count()
+
+fig_payment_type = px.pie(
+    payment_type,
+    values= 'Quantity',
+    names= payment_type.index
+)
+
+
+
+Q1,Q2 = st.columns(2)
+
+with Q1:
+    st.plotly_chart(fig_product_sales,use_container_width=True)
+with Q2:
+    st.plotly_chart(fig_sales_by_hour,use_container_width=True)
+
+Q3,Q4 = st.columns(2)    
+with Q3:
+    st.plotly_chart(fig_average_product_rating,use_container_width=True)
+with Q4:
+    st.plotly_chart(fig_rating_vs_unitprice,use_container_width=True)
+
+Q5,Q6 ,Q7= st.columns(3) 
+
+with Q6:
+    st.plotly_chart(fig_payment_type,use_container_width=True)
 
 
 #chart_leftcol, chart_rightcol = st.columns(2)
 #chart_leftcol.plotly_chart(fig_product_sales,use_container_width=True)
 #chart_rightcol.plotly_chart(fig_sales_by_hour,use_container_width=True)
 
-# ---- HIDE STREAMLIT STYLE ----
-hide_st_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_st_style, unsafe_allow_html=True)
