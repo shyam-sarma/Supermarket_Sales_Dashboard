@@ -13,7 +13,7 @@ st.set_page_config(page_title = "Supermarket Sales Dashboard",
 @st.cache
 def get_data_from_excel():
     df = pd.read_excel(
-        io = '/Users/shyam/Desktop/Streamlit Apps/Sales_Dashboard/data/supermarkt_sales.xlsx',
+        io = 'data/supermarkt_sales.xlsx',
         skiprows = 3,
         usecols = 'B:R')
     #Add hour column to dataframe
